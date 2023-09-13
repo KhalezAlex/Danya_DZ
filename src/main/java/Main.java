@@ -5,7 +5,7 @@ public class Main {
         Graph graph = new Graph();
 
         Edge edge = graph.listOfLeafs.get(0);
-
+        System.out.println(edge);
         edge = graph.getRestOfGraph(edge);
         System.out.println(edge);
     }
