@@ -1,41 +1,57 @@
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class Graph {
-    public Edge edge;
-    public LinkedList<Integer> listOfVisitedHP;
+    public Edge leaf;
+    public ArrayList<Edge> listOfLeafs;
 
 
-    public Graph(Edge edge, LinkedList<Integer> listOfVisitedHP) {
-        this.edge = edge;
-        this.listOfVisitedHP = listOfVisitedHP;
+    public Graph() throws IOException {
+        this.listOfLeafs = new ArrayList<>();
+        this.leaf = graph();
     }
 
-    HashMap<Integer, Edge> getHP(Edge root) {
-        int hp = 0;
-        //пока есть дочерние ребра, спускаемся вниз, убавляя hp
-        while (root.getDest().size() != 0) {
-            hp -= root.getLength();
-            root = (Edge) root.dive(hp).keySet().toArray()[0];
+    private Edge graph() throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader("test.txt"));
+        ArrayList<String> list = new ArrayList<>();
+        String str;
+        br.readLine();
+        while ((str = br.readLine()) != null) {
+            list.add(str);
         }
-        // спкускаемся вниз по последнему ребру
-        hp -= root.getLength();
-        HashMap<Integer, Edge> tmp = new HashMap<>();
-        tmp.put(hp, root);
-        //возвращаемся до первого разветвления
-        getRestOfGraph(tmp);
-        return tmp;
+        return getEdgeFromString(list, 0, null);
     }
 
-    private Edge getRestOfGraph(HashMap<Integer, Edge> leaf) {
-        int hp = (int) leaf.keySet().toArray()[0];
-        Edge edge = leaf.get(hp);
-        hp += edge.getAmount();
-        while (edge.getDest().size() == 0) {
-            hp -= edge.getLength();
-            edge = edge.getSrc();
+    private Edge getEdgeFromString(ArrayList<String> strArrList, int index, Edge src) {
+        String[] string = strArrList.get(index).split(" ");
+        int number = index + 1;
+        int length = Integer.parseInt(string[0]);
+        int amount = 0;
+        int hp = src == null ? -length : src.getHp() - length;
+        Edge currentEdge = new Edge(number, src, new ArrayList<>(), length, amount, hp);
+        if (Integer.parseInt(string[1]) == 0) {
+            currentEdge.setAmount(Integer.parseInt(string[2]));
+            listOfLeafs.add(currentEdge);
         }
-        edge.getDest().remove(0);
-        return null;
+        else {
+            for (int i = 2; i < string.length; i++) {
+                currentEdge.getDest().add(getEdgeFromString(strArrList,
+                        Integer.parseInt(string[i]) - 1, currentEdge));
+            }
+        }
+        return currentEdge;
+    }
+
+    public Edge getRestOfGraph(Edge leaf) {
+        //едим
+        leaf.setHp(leaf.getHp() + leaf.getAmount());
+        //пока не найдем разветвление, возвращаемся назад и удаляем грань, попутно теряя hp
+        while (leaf.getDest().size() == 0) {
+            leaf = leaf.up();
+            leaf.getDest().remove(0);
+        }
+        return leaf;
     }
 }
