@@ -68,17 +68,23 @@ public class Edge {
 
     public Edge down() {
         Edge tmp = this.dest.get(0);
-        tmp.setHp(this.hp - this.length);
+        tmp.setHp(this.hp - tmp.length);
         return tmp;
     }
 
     public Edge up() {
+        if (this.src == null) {
+            this.hp -= this.length;
+            return this;
+        }
         Edge tmp = this.src;
         tmp.setHp(this.hp - this.length);
         return tmp;
     }
 
-
+    public void eat() {
+        this.hp += this.amount;
+    }
     @Override
     public String toString() {
         return "Edge{" +

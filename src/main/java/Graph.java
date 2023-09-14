@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Graph {
-    public Edge leaf;
+    public Edge edge;
     public ArrayList<Edge> listOfLeafs;
 
 
     public Graph() throws IOException {
         this.listOfLeafs = new ArrayList<>();
-        this.leaf = graph();
+        this.edge = graph();
     }
 
     private Edge graph() throws IOException {
@@ -45,13 +45,36 @@ public class Graph {
     }
 
     public Edge getRestOfGraph(Edge leaf) {
-        //едим
-        leaf.setHp(leaf.getHp() + leaf.getAmount());
+        leaf.eat();
         //пока не найдем разветвление, возвращаемся назад и удаляем грань, попутно теряя hp
         while (leaf.getDest().size() == 0) {
+            Edge e = leaf;
             leaf = leaf.up();
-            leaf.getDest().remove(0);
+            if (leaf.getDest().size() != 0) {
+                leaf.getDest().remove(e);
+            }
+            else break;
         }
         return leaf;
+    }
+
+    public void getNextLeaf() {
+        while (this.edge.getDest().size() != 0) {
+            this.edge = this.edge.down();
+        }
+    }
+
+    public int eatAll(Edge leaf) {
+        this.edge = leaf;
+        while (this.edge.getSrc() != null) {
+            this.edge = getRestOfGraph(leaf);
+            if (this.edge.getHp() < 0)
+                return -1;
+            getNextLeaf();
+            leaf = this.edge;
+            if (this.edge.getHp() < 0)
+                return -1;
+        }
+        return this.edge.getHp();
     }
 }
